@@ -3,7 +3,7 @@
   <groupId>com.talis</groupId>
   <artifactId>rdf-solr</artifactId>
   <packaging>jar</packaging>
-  <version>1.175-SNAPSHOT</version>
+  <version>1.175</version>
   <name>rdf-solr</name>
   
   <scm>
