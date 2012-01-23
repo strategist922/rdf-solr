@@ -22,6 +22,7 @@ import static org.apache.commons.lang.Validate.notNull;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 
 import org.apache.lucene.document.DateTools;
 import org.apache.solr.common.SolrInputDocument;
@@ -37,26 +38,23 @@ public class DefaultDocumentBuilder implements SolrDocumentBuilder{
 	private final static Logger LOG = LoggerFactory.getLogger(DefaultDocumentBuilder.class);
 	
 	@Override
-	public SolrInputDocument getDocument(String key, Collection<Quad> quads) {
-		String[] keyComponents = key.split(" ");
-		isTrue(keyComponents.length == 2, "Invalid document key");
-		String graph = keyComponents[0];
-		String subject = keyComponents[1]; 
-		LOG.debug("Creating SolrInputDocument for graph {} and subject {}", graph, subject);
-		notNull(graph, "Graph URI cannot be null.");
+	public SolrInputDocument getDocument(String subject, Collection<Quad> quads) {
+		LOG.debug("Creating SolrInputDocument for subject {}", subject);
 		notNull(subject, "Subject URI cannot be null.");
 		notNull(quads, "Quads cannot be null.");
 		
 		SolrInputDocument doc = new SolrInputDocument();
 		doc.setField(INDEX_DATE,DateTools.dateToString(new Date(), DateTools.Resolution.SECOND));
-		doc.setField(DOCUMENT_KEY, documentKeyFor(graph, subject));
-		doc.setField(GRAPH_URI, graph);
+		doc.setField(DOCUMENT_KEY,subject);
 		doc.setField(SUBJECT_URI, subject);
+		
+		HashSet<String> graphUris = new HashSet<String>();
 		
 		for (Quad quad : quads) {
 			LOG.debug("Processing quad {}", quad);
 			
-			isTrue(quad.getGraph().getURI().equals(graph), "Graph URI not consistent with key");
+			graphUris.add(quad.getGraph().getURI());
+			
 			isTrue(quad.getSubject().getURI().equals(subject), "Subject URI not consistent with key");
 			
 			if (quad.getPredicate().getURI().equals(RDF.type.getURI())){
@@ -72,11 +70,10 @@ public class DefaultDocumentBuilder implements SolrDocumentBuilder{
 				doc.addField(quad.getPredicate().getURI(), object.getLiteralValue());
 			}
 		}
+		for (String graphUri : graphUris) {
+			doc.addField(GRAPH_URI, graphUri);
+		}
 		return doc;
-	}
-
-	public String documentKeyFor(String graphUri, String subjectUri) {
-		return graphUri + " " + subjectUri;
 	}
 
 }

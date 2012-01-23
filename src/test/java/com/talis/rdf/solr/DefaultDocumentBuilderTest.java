@@ -38,7 +38,7 @@ public class DefaultDocumentBuilderTest {
 	private static final String GRAPH_URI = "http://example.com/graph1";
 	private static final String PREDICATE_BASE = "http://example.com/schema/predicate/";
 	private static final String OBJECT_BASE = "SomeLiteralValue";
-	private static final String DOCUMENT_KEY = GRAPH_URI + " " + SUBJECT_URI;
+	private static final String DOCUMENT_KEY = SUBJECT_URI;
 	
 	private DefaultDocumentBuilder quadsToDoc;
 	
@@ -51,11 +51,10 @@ public class DefaultDocumentBuilderTest {
 	public void getDocumentAddsDefaultFields() {
 		SolrInputDocument doc = quadsToDoc.getDocument(DOCUMENT_KEY, new ArrayList<Quad>());
 		assertNotNull(doc);
-		assertEquals(GRAPH_URI + " " + SUBJECT_URI, doc.getField(FieldNames.DOCUMENT_KEY).getValue());
+		assertEquals(SUBJECT_URI, doc.getField(FieldNames.DOCUMENT_KEY).getValue());
 		assertEquals(SUBJECT_URI, doc.getField(FieldNames.SUBJECT_URI).getValue());
-		assertEquals(GRAPH_URI, doc.getField(FieldNames.GRAPH_URI).getValue());
 		assertNotNull(doc.getField(FieldNames.INDEX_DATE).getValue());
-		assertEquals(4, doc.size());
+		assertEquals(3, doc.size());
 	}
 
 	@Test
@@ -101,16 +100,6 @@ public class DefaultDocumentBuilderTest {
 			assertTrue(values.contains(expected));
 		}
 		
-	}
-
-	@Test (expected=IllegalArgumentException.class)
-	public void keyMustContainGraphAndSubjectUriComponents() {
-		quadsToDoc.getDocument("THIS_IS_NOT_A_VALID_KEY", new ArrayList<Quad>());
-	}
-	
-	@Test (expected=IllegalArgumentException.class)
-	public void keyMustContainOnlyGraphAndSubjectUriComponents() {
-		quadsToDoc.getDocument("THIS IS ALSO NOT A VALID KEY", new ArrayList<Quad>());
 	}
 
 	@Test (expected=IllegalArgumentException.class)
@@ -276,5 +265,44 @@ public class DefaultDocumentBuilderTest {
 		assertEquals(1, field.getValues().size());
 	}
 
+	@Test
+	public void graphURIFromEveryQuadAddedToDocument() {
+		ArrayList<Quad> quads = new ArrayList<Quad>();
+		int NUMBER_OF_QUADS = 10;
+		for (int i = 0; i < NUMBER_OF_QUADS ; i++) {
+			quads.add(new Quad(
+				Node.createURI(GRAPH_URI + i), 
+				Node.createURI(SUBJECT_URI), 
+				Node.createURI(PREDICATE_BASE), 
+				Node.createLiteral(OBJECT_BASE)));
+		}
+
+		SolrInputDocument doc = quadsToDoc.getDocument(DOCUMENT_KEY, quads);
+		assertNotNull(doc);
+		Collection<Object> graphUriValues = doc.getFieldValues(com.talis.rdf.solr.FieldNames.GRAPH_URI);
+		assertNotNull(graphUriValues);
+		assertEquals(NUMBER_OF_QUADS, graphUriValues.size());
+		for (int i = 0; i < NUMBER_OF_QUADS ; i++) {
+			assertTrue(graphUriValues.contains(GRAPH_URI + i));
+		}
+	}
+	
+	@Test
+	public void duplicateGraphURIsAreOnlyAddedToDocumentOnce() {
+		ArrayList<Quad> quads = new ArrayList<Quad>();
+		int NUMBER_OF_QUADS = 10;
+		for (int i = 0; i < NUMBER_OF_QUADS ; i++) {
+			quads.add(new Quad(
+				Node.createURI(GRAPH_URI), 
+				Node.createURI(SUBJECT_URI), 
+				Node.createURI(PREDICATE_BASE), 
+				Node.createLiteral(OBJECT_BASE + i)));
+		}
+
+		SolrInputDocument doc = quadsToDoc.getDocument(DOCUMENT_KEY, quads);
+		assertNotNull(doc);
+		Collection<Object> graphUriValues = doc.getFieldValues(com.talis.rdf.solr.FieldNames.GRAPH_URI);
+		assertEquals(1, graphUriValues.size());
+	}
 	
 }
