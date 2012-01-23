@@ -17,8 +17,8 @@
 package com.talis.rdf.solr;
 
 import static com.talis.rdf.solr.FieldNames.*;
-import static org.apache.commons.lang.Validate.isTrue;
 import static org.apache.commons.lang.Validate.notNull;
+import static org.apache.commons.lang.Validate.isTrue;
 
 import java.util.Collection;
 import java.util.Date;
@@ -38,26 +38,26 @@ public class DefaultDocumentBuilder implements SolrDocumentBuilder{
 	
 	@Override
 	public SolrInputDocument getDocument(String key, Collection<Quad> quads) {
-		String[] keyComponents = key.split(" ");
-		isTrue(keyComponents.length == 2, "Invalid document key");
-		String graph = keyComponents[0];
-		String subject = keyComponents[1]; 
-		LOG.debug("Creating SolrInputDocument for graph {} and subject {}", graph, subject);
-		notNull(graph, "Graph URI cannot be null.");
-		notNull(subject, "Subject URI cannot be null.");
+//		String[] keyComponents = key.split(" ");
+//		isTrue(keyComponents.length == 2, "Invalid document key");
+//		String graph = keyComponents[0];
+//		String subject = keyComponents[1]; 
+		LOG.debug("Creating SolrInputDocument with key {}", key);
+		notNull(key, "Key cannot be null.");
 		notNull(quads, "Quads cannot be null.");
 		
 		SolrInputDocument doc = new SolrInputDocument();
 		doc.setField(INDEX_DATE,DateTools.dateToString(new Date(), DateTools.Resolution.SECOND));
-		doc.setField(DOCUMENT_KEY, documentKeyFor(graph, subject));
-		doc.setField(GRAPH_URI, graph);
-		doc.setField(SUBJECT_URI, subject);
+		doc.setField(DOCUMENT_KEY, key);
+		doc.setField(SUBJECT_URI, key);
 		
 		for (Quad quad : quads) {
 			LOG.debug("Processing quad {}", quad);
 			
-			isTrue(quad.getGraph().getURI().equals(graph), "Graph URI not consistent with key");
-			isTrue(quad.getSubject().getURI().equals(subject), "Subject URI not consistent with key");
+			doc.addField(GRAPH_URI, quad.getGraph().getURI());
+			
+//			isTrue(quad.getGraph().getURI().equals(graph), "Graph URI not consistent with key");
+			isTrue(quad.getSubject().getURI().equals(key), "Subject URI not consistent with key");
 			
 			if (quad.getPredicate().getURI().equals(RDF.type.getURI())){
 				doc.addField(CLASS, quad.getObject().getURI());
@@ -75,8 +75,8 @@ public class DefaultDocumentBuilder implements SolrDocumentBuilder{
 		return doc;
 	}
 
-	public String documentKeyFor(String graphUri, String subjectUri) {
-		return graphUri + " " + subjectUri;
-	}
+//	public String documentKeyFor(String graphUri, String subjectUri) {
+//		return graphUri + " " + subjectUri;
+//	}
 
 }

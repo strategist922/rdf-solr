@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+
+    <appender name="NULL" class="org.apache.log4j.varia.NullAppender">
+      <layout class="org.apache.log4j.PatternLayout">
+        <param name="ConversionPattern" value="${pattern}"/>
+      </layout>
+    </appender>
+    
+    <appender name="stdout" class="org.apache.log4j.ConsoleAppender"> 
+        <layout class="org.apache.log4j.PatternLayout"> 
+            <param name="ConversionPattern" value="%d{ISO8601} -%5p %-25c{1} :%t: %X{R_UID}|%m%n"/>
+        </layout>
+    </appender>
+    
+    <appender name="fileout" class="org.apache.log4j.RollingFileAppender"> 
+        <param name="MaxFileSize" value="10MB"/>
+        <param name="Append" value="true"/>
+        <param name="maxBackupIndex" value="1"/>
+        <param name="File" value="/tmp/rdf-solr-test.log"/> 
+        <layout class="org.apache.log4j.PatternLayout"> 
+            <param name="ConversionPattern" value="%d{ISO8601} -%5p %-25c{1} :%t: %X{R_UID}|%m%n"/>
+        </layout> 
+    </appender>
+    
+    <logger name="com.talis">
+        <level value="debug"/> 
+    </logger>
+
+    <root> 
+    	<level value="info"/>
+        <appender-ref ref="stdout" /> 
+    </root> 
+
+</log4j:configuration>

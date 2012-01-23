@@ -26,6 +26,7 @@ import java.util.Collection;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.SolrInputField;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.hp.hpl.jena.graph.Node;
@@ -38,7 +39,7 @@ public class DefaultDocumentBuilderTest {
 	private static final String GRAPH_URI = "http://example.com/graph1";
 	private static final String PREDICATE_BASE = "http://example.com/schema/predicate/";
 	private static final String OBJECT_BASE = "SomeLiteralValue";
-	private static final String DOCUMENT_KEY = GRAPH_URI + " " + SUBJECT_URI;
+	private static final String DOCUMENT_KEY = SUBJECT_URI;
 	
 	private DefaultDocumentBuilder quadsToDoc;
 	
@@ -51,11 +52,10 @@ public class DefaultDocumentBuilderTest {
 	public void getDocumentAddsDefaultFields() {
 		SolrInputDocument doc = quadsToDoc.getDocument(DOCUMENT_KEY, new ArrayList<Quad>());
 		assertNotNull(doc);
-		assertEquals(GRAPH_URI + " " + SUBJECT_URI, doc.getField(FieldNames.DOCUMENT_KEY).getValue());
+		assertEquals(SUBJECT_URI, doc.getField(FieldNames.DOCUMENT_KEY).getValue());
 		assertEquals(SUBJECT_URI, doc.getField(FieldNames.SUBJECT_URI).getValue());
-		assertEquals(GRAPH_URI, doc.getField(FieldNames.GRAPH_URI).getValue());
 		assertNotNull(doc.getField(FieldNames.INDEX_DATE).getValue());
-		assertEquals(4, doc.size());
+		assertEquals(3, doc.size());
 	}
 
 	@Test
@@ -103,45 +103,28 @@ public class DefaultDocumentBuilderTest {
 		
 	}
 
-	@Test (expected=IllegalArgumentException.class)
-	public void keyMustContainGraphAndSubjectUriComponents() {
+	@Test (expected=IllegalArgumentException.class) @Ignore
+	public void keyMustContainValidSubjectUri() {
 		quadsToDoc.getDocument("THIS_IS_NOT_A_VALID_KEY", new ArrayList<Quad>());
 	}
 	
-	@Test (expected=IllegalArgumentException.class)
-	public void keyMustContainOnlyGraphAndSubjectUriComponents() {
-		quadsToDoc.getDocument("THIS IS ALSO NOT A VALID KEY", new ArrayList<Quad>());
-	}
-
 	@Test (expected=IllegalArgumentException.class)
 	public void quadsMustNotBeNull() {
 		quadsToDoc.getDocument(DOCUMENT_KEY, null);
 	}
 
 	@Test (expected=IllegalArgumentException.class)
-	public void inconsistentGraphUriThrowsException() {
+	public void keyAndSubjectUriInconsistencyThrowsException() {
 		ArrayList<Quad> quads = new ArrayList<Quad>();
 		quads.add(new Quad(
 			Node.createURI(GRAPH_URI), 
 			Node.createURI(SUBJECT_URI), 
 			Node.createURI(PREDICATE_BASE), 
 			Node.createLiteral(OBJECT_BASE)));
-		String otherKey = "http://someothergraph.com" + " " +  SUBJECT_URI;
+		String otherKey = "http://someothersubject.com";
 		quadsToDoc.getDocument(otherKey, quads);
 	}
 
-	@Test (expected=IllegalArgumentException.class)
-	public void inconsistentSubjectUriThrowsException() {
-		ArrayList<Quad> quads = new ArrayList<Quad>();
-		quads.add(new Quad(
-			Node.createURI(GRAPH_URI), 
-			Node.createURI(SUBJECT_URI), 
-			Node.createURI(PREDICATE_BASE), 
-			Node.createLiteral(OBJECT_BASE)));
-		String otherKey = GRAPH_URI + " " + "http://someothersubject.com"; 
-		quadsToDoc.getDocument(otherKey, quads);
-	}
-	
 	@Test
 	public void statisticsFieldsForPropertiesAreAddedToDocument(){
 		String firstPredicate = PREDICATE_BASE + "first";
@@ -275,6 +258,8 @@ public class DefaultDocumentBuilderTest {
 		assertEquals("Aloha", field.getFirstValue());
 		assertEquals(1, field.getValues().size());
 	}
+	
+	// TODO add test for indexing a set of quads with multiple Graph URIs 
 
 	
 }
