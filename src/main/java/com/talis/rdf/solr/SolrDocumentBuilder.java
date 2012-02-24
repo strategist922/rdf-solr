@@ -16,14 +16,12 @@
 
 package com.talis.rdf.solr;
 
-import java.util.Collection;
-
 import org.apache.solr.common.SolrInputDocument;
 
 import com.hp.hpl.jena.sparql.core.Quad;
 
 public interface SolrDocumentBuilder {
 
-	public SolrInputDocument getDocument(String documentKey, Collection<Quad> quads);
+	public SolrInputDocument getDocument(String documentKey, Iterable<Quad> quads);
 	
 }

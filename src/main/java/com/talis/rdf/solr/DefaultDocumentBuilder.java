@@ -20,7 +20,6 @@ import static com.talis.rdf.solr.FieldNames.*;
 import static org.apache.commons.lang.Validate.isTrue;
 import static org.apache.commons.lang.Validate.notNull;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 
@@ -38,7 +37,7 @@ public class DefaultDocumentBuilder implements SolrDocumentBuilder{
 	private final static Logger LOG = LoggerFactory.getLogger(DefaultDocumentBuilder.class);
 	
 	@Override
-	public SolrInputDocument getDocument(String subject, Collection<Quad> quads) {
+	public SolrInputDocument getDocument(String subject, Iterable<Quad> quads) {
 		LOG.debug("Creating SolrInputDocument for subject {}", subject);
 		notNull(subject, "Subject URI cannot be null.");
 		notNull(quads, "Quads cannot be null.");
