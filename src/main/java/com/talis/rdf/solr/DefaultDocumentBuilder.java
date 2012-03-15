@@ -56,17 +56,20 @@ public class DefaultDocumentBuilder implements SolrDocumentBuilder{
 			
 			isTrue(quad.getSubject().getURI().equals(subject), "Subject URI not consistent with key");
 			
-			if (quad.getPredicate().getURI().equals(RDF.type.getURI())){
-				doc.addField(CLASS, quad.getObject().getURI());
-				doc.addField(CLASS_NS, quad.getObject().getNameSpace());
+			Node predicate = quad.getPredicate();
+			Node object = quad.getObject();
+			String predicateStr = predicate.getURI();
+			if (predicateStr.equals(RDF.type.getURI())
+					&& object.isURI()){
+				doc.addField(CLASS, object.getURI());
+				doc.addField(CLASS_NS, object.getNameSpace());
 			}
 			
-			doc.addField(PROPERTY, quad.getPredicate().getURI());
-			doc.addField(PROPERTY_NS, quad.getPredicate().getNameSpace());
+			doc.addField(PROPERTY, predicateStr);
+			doc.addField(PROPERTY_NS, predicate.getNameSpace());
 			
-			Node object = quad.getObject();
 			if ( object.isLiteral() ) {
-				doc.addField(quad.getPredicate().getURI(), object.getLiteralValue());
+				doc.addField(predicateStr, object.getLiteralValue());
 			}
 		}
 		for (String graphUri : graphUris) {

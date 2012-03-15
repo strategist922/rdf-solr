@@ -305,4 +305,30 @@ public class DefaultDocumentBuilderTest {
 		assertEquals(1, graphUriValues.size());
 	}
 	
+
+
+	@Test
+	public void getDocumentForQuadWithBadRdfType() {
+		// It's legal syntax to have an rdfType with a literal value.
+		//  However it's not legal semantics, and we need to guard against it.
+		ArrayList<Quad> quads = new ArrayList<Quad>();
+		// Bad Quad
+		quads.add(new Quad(
+			Node.createURI(GRAPH_URI), 
+			Node.createURI(SUBJECT_URI), 
+			Node.createURI(RDF.type.getURI()), 
+			Node.createLiteral("not a uri")));
+		// OK Quad
+		quads.add(new Quad(
+			Node.createURI(GRAPH_URI), 
+			Node.createURI(SUBJECT_URI), 
+			Node.createURI(PREDICATE_BASE), 
+			Node.createLiteral(OBJECT_BASE)));
+		
+		SolrInputDocument doc = quadsToDoc.getDocument(DOCUMENT_KEY, quads);
+		assertNotNull(doc);
+		assertEquals(OBJECT_BASE, doc.getField(PREDICATE_BASE).getValue());
+		assertEquals("not a uri", doc.getField(RDF.type.getURI()).getValue());
+	}
+	
 }
